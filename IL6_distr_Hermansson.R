@@ -1,6 +1,7 @@
 # Script to analyse distributions of cytokine data
 
 # Written by Jimmy Hermansson
+# Appended by Love Ahnström
 
 # Clear environment
 rm(list=ls())
@@ -10,6 +11,7 @@ rm(list=ls())
 # Require packages
 require(foreign)
 require(tidyverse)
+require(fitdistrplus)
 
 # Read data from files
 Abhimanyu_df <- read.csv2("Abhimanyu_derivation.csv")
@@ -58,21 +60,42 @@ setwd("../output")
 IL6_only_stacked %>% 
   group_by(ind) %>%
   group_walk(~{
-    test <- fitdist(.x$values, distr = dnorm)
-    model_summary <- summary(test)
+    
+    # Fitdistr
+    test_dnorm <- fitdist(.x$values, distr = dnorm)
+    model_summary_dnorm <- summary(test_dnorm)
+    
+    test_dexp <- fitdist(.x$values/1000, distr = dexp)
+    model_summary_dexp <- summary(test_dexp)
+    
+    # Shapiro-wilk normality test
+    for_shapiro <- .x$values
+    for_shapiro_log <- log(.x$values)
+    shapiro_test <- shapiro.test(for_shapiro)
+    shapiro_test_log <- shapiro.test(for_shapiro_log)
+    
+    
     
     #group_walk silences output to console, going around this by writing csv files instead
-    df <- data.frame(distr = "dnorm", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
-    write.csv(df, sprintf("%s-fitdistr-dnorm.csv", .y$ind[1]), row.names = F)
+    df <- data.frame(
+      dataset=.y$ind[1], 
+      n=model_summary_dnorm$n, 
+      w_raw = shapiro_test$statistic, 
+      p_raw = shapiro_test$p.value, 
+      w_log = shapiro_test_log$statistic, 
+      p_log = shapiro_test_log$p.value, 
+      loglike_norm=model_summary_dnorm$loglik, 
+      aic_norm=model_summary_dnorm$aic, 
+      bic_norm=model_summary_dnorm$bic, 
+      loglike_exp=model_summary_dexp$loglik, 
+      aic_exp=model_summary_dexp$aic, 
+      bic_exp=model_summary_dexp$bic)
+    write.csv(df, sprintf("%s-fitdistr.csv", .y$ind[1]), row.names = F)
     
-
-    test <- fitdist(.x$values/1000, distr = dexp)
-    model_summary <- summary(test)
-    df <- data.frame(distr="dexp", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
-    write.csv(df, sprintf("%s-fitdistr-dexp.csv", .y$ind[1]), row.names = F)
-
-  
-    plot(test)
+    
+    # plot(test_dnorm)
+    # plot(test_dexp)
+    
   })
 
 
