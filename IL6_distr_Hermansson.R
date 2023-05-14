@@ -76,12 +76,6 @@ IL6_only_stacked %>%
   })
 
 
-# ########### MANUAL TESTING ####################
-# IL6Imaeda_filtered <- IL6Imaeda %>% filter(!is.na(Imaeda_df..Interleukin.6..pg.mL.))
-# test <- fitdist(IL6Imaeda_filtered$Imaeda_df..Interleukin.6..pg.mL., distr = dexp)
-# model_summary <- summary(test)
-
-
 #Read and merge the CSV files again
 outputs <- list.files(path='.') %>% 
   lapply(read_csv) %>% 
