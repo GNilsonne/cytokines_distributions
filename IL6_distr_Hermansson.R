@@ -65,19 +65,22 @@ IL6_only_stacked %>%
     df <- data.frame(distr = "dnorm", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
     write.csv(df, sprintf("%s-fitdistr-dnorm.csv", .y$ind[1]), row.names = F)
     
-    tryCatch({
-      test <- fitdist(.x$values, distr = dexp)
-      model_summary <- summary(test)
-      df <- data.frame(distr="dexp", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
-      write.csv(df, sprintf("%s-fitdistr-dexp.csv", .y$ind[1]), row.names = F)
-    }, error=function(err) {
-      return(NA)
-    }, warning=function(war) {
-      return(NA)
-    })
-    
+
+    test <- fitdist(.x$values/1000, distr = dexp)
+    model_summary <- summary(test)
+    df <- data.frame(distr="dexp", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
+    write.csv(df, sprintf("%s-fitdistr-dexp.csv", .y$ind[1]), row.names = F)
+
+  
     plot(test)
   })
+
+
+# ########### MANUAL TESTING ####################
+# IL6Imaeda_filtered <- IL6Imaeda %>% filter(!is.na(Imaeda_df..Interleukin.6..pg.mL.))
+# test <- fitdist(IL6Imaeda_filtered$Imaeda_df..Interleukin.6..pg.mL., distr = dexp)
+# model_summary <- summary(test)
+
 
 #Read and merge the CSV files again
 outputs <- list.files(path='.') %>% 
