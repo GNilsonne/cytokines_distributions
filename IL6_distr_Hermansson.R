@@ -47,9 +47,12 @@ IL6Lekander <- data.frame(Lekander$il6m)
 IL6Lekander<- na.omit(IL6Lekander)
 
 # Stack data in a 2 column df 
-IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander)
-colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander")
+IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA)
+colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA")
 IL6_only_stacked <- data.frame(stack(IL6_only)) %>% filter(!is.na(values))
+
+# To simplify the syntax when writing files
+setwd("../output")
 
 # Group by dataset, for each group run the model and export csv file, once for dnorm and once for dexp
 IL6_only_stacked %>% 
@@ -57,14 +60,16 @@ IL6_only_stacked %>%
   group_walk(~{
     test <- fitdist(.x$values, distr = dnorm)
     model_summary <- summary(test)
-    df <- data.frame(dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
-    write.csv(df, sprintf("output/%s-fitdistr-dnorm.csv", .y$ind[1]), col.names = F)
+    
+    #group_walk silences output to console, going around this by writing csv files instead
+    df <- data.frame(distr = "dnorm", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
+    write.csv(df, sprintf("%s-fitdistr-dnorm.csv", .y$ind[1]), row.names = F)
     
     tryCatch({
       test <- fitdist(.x$values, distr = dexp)
       model_summary <- summary(test)
-      df <- data.frame(dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
-      write.csv(df, sprintf("output/%s-fitdistr-dexp.csv", .y$ind[1]), col.names = F)
+      df <- data.frame(distr="dexp", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
+      write.csv(df, sprintf("%s-fitdistr-dexp.csv", .y$ind[1]), row.names = F)
     }, error=function(err) {
       return(NA)
     }, warning=function(war) {
@@ -74,6 +79,11 @@ IL6_only_stacked %>%
     plot(test)
   })
 
+#Read and merge the CSV files again
+outputs <- list.files(path='.') %>% 
+  lapply(read_csv) %>% 
+  bind_rows 
+write.csv(outputs, "../all_outputs.csv", row.names = F)
 
 # 2. Analyse distributions and create tables
 
