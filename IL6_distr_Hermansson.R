@@ -9,12 +9,13 @@ rm(list=ls())
 
 # Require packages
 require(foreign)
+require(tidyverse)
 
 # Read data from files
 Abhimanyu_df <- read.csv2("Abhimanyu_derivation.csv")
 Sothern_df <- read.csv2("Sothern1995IndividualData.csv")
-Imaeda_df <- read.csv2("Imaeda derivation.csv", na.strings = c("", "NA"))
-Imaeda_v_df <- read.csv2("Imaeda validation.csv", na.strings = c("", "NA"))
+Imaeda_df <- read.csv2("Imaeda derivation.csv", na.strings = c("", "NA"), check.names = F, encoding = "UTF-8")
+Imaeda_v_df <- read.csv2("Imaeda validation.csv", na.strings = c("", "NA"), check.names = F, encoding = "UTF-8")
 Wand_df <- read.csv2("Wand (2016) data.csv")
 MIDUS_df <- load("29282-0001-Data.rda")
 IL6MIDUS <- data.frame(da29282.0001$B4BMSDIL6)
@@ -31,10 +32,11 @@ IL6Abhimanyu <- na.omit(IL6Abhimanyu)
 
 # Wand - extract IL-6
 IL6Wand <- data.frame(Wand_df$IL6.d1.4h, Wand_df$IL6.d1.16h, Wand_df$IL6.d2.4h, Wand_df$IL6.d2.16h, Wand_df$IL6.d3.4h, Wand_df$IL6.d3.16h, Wand_df$IL6.d4.4h, Wand_df$IL6.d4.16h)
+IL6Wand_stacked <- data.frame(stack(IL6Wand))[1]
 
 # Imaeda - extract IL-6
-IL6Imaeda <- data.frame(Imaeda_df$Interleukin.6..pg.mL)
-IL6Imaeda_v <- data.frame(Imaeda_v_df$Interleukin.6..pg.mL)
+IL6Imaeda <- data.frame(Imaeda_df$`Interleukin-6, pg/mL`)
+IL6Imaeda_v <- data.frame(Imaeda_v_df$`Interleukin-6, pg/mL`)
 
 # Sothern - re-arrange data into one column and extract IL6
 Sothern_df <- data.frame(stack(Sothern_df))
@@ -44,6 +46,47 @@ IL6Sothern <- data.frame(Sothern_df$values)
 IL6Lekander <- data.frame(Lekander$il6m)
 IL6Lekander<- na.omit(IL6Lekander)
 
+# Stack data in a 2 column df 
+IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA)
+colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA")
+IL6_only_stacked <- data.frame(stack(IL6_only)) %>% filter(!is.na(values))
+
+# To simplify the syntax when writing files
+setwd("../output")
+
+# Group by dataset, for each group run the model and export csv file, once for dnorm and once for dexp
+IL6_only_stacked %>% 
+  group_by(ind) %>%
+  group_walk(~{
+    test <- fitdist(.x$values, distr = dnorm)
+    model_summary <- summary(test)
+    
+    #group_walk silences output to console, going around this by writing csv files instead
+    df <- data.frame(distr = "dnorm", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
+    write.csv(df, sprintf("%s-fitdistr-dnorm.csv", .y$ind[1]), row.names = F)
+    
+
+    test <- fitdist(.x$values/1000, distr = dexp)
+    model_summary <- summary(test)
+    df <- data.frame(distr="dexp", dataset=.y$ind[1], loglike=model_summary$loglik, aic=model_summary$aic, bic=model_summary$bic)
+    write.csv(df, sprintf("%s-fitdistr-dexp.csv", .y$ind[1]), row.names = F)
+
+  
+    plot(test)
+  })
+
+
+# ########### MANUAL TESTING ####################
+# IL6Imaeda_filtered <- IL6Imaeda %>% filter(!is.na(Imaeda_df..Interleukin.6..pg.mL.))
+# test <- fitdist(IL6Imaeda_filtered$Imaeda_df..Interleukin.6..pg.mL., distr = dexp)
+# model_summary <- summary(test)
+
+
+#Read and merge the CSV files again
+outputs <- list.files(path='.') %>% 
+  lapply(read_csv) %>% 
+  bind_rows 
+write.csv(outputs, "../all_outputs.csv", row.names = F)
 
 # 2. Analyse distributions and create tables
 
