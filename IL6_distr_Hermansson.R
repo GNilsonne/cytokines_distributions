@@ -80,16 +80,16 @@ IL6_only_stacked %>%
     df <- data.frame(
       dataset=.y$ind[1], 
       n=model_summary_dnorm$n, 
-      w_raw = shapiro_test$statistic, 
-      p_raw = shapiro_test$p.value, 
-      w_log = shapiro_test_log$statistic, 
-      p_log = shapiro_test_log$p.value, 
-      loglike_norm=model_summary_dnorm$loglik, 
-      aic_norm=model_summary_dnorm$aic, 
-      bic_norm=model_summary_dnorm$bic, 
-      loglike_exp=model_summary_dexp$loglik, 
-      aic_exp=model_summary_dexp$aic, 
-      bic_exp=model_summary_dexp$bic)
+      w_raw = round(shapiro_test$statistic, digits=3), 
+      p_raw = signif(shapiro_test$p.value, digits=3), 
+      w_log = round(shapiro_test_log$statistic, digits=3) , 
+      p_log = signif(shapiro_test_log$p.value, digits=3), 
+      loglik_norm=round(model_summary_dnorm$loglik, digits=1), 
+      aic_norm=round(model_summary_dnorm$aic, digits=1), 
+      bic_norm=round(model_summary_dnorm$bic, digits=1), 
+      loglik_exp=round(model_summary_dexp$loglik, digits=1), 
+      aic_exp=round(model_summary_dexp$aic, digits=1), 
+      bic_exp=round(model_summary_dexp$bic, digits=1))
     write.csv(df, sprintf("%s-fitdistr.csv", .y$ind[1]), row.names = F)
     
     
