@@ -12,6 +12,8 @@ rm(list=ls())
 require(foreign)
 require(tidyverse)
 require(fitdistrplus)
+require(haven)
+require(moments)
 
 # Read data from files
 Abhimanyu_df <- read.csv2("Abhimanyu_derivation.csv")
@@ -26,6 +28,8 @@ MIDJA_df <- load("34969-0001-Data.rda")
 IL6MIDJA <- data.frame(da34969.0001$J2BIL6)
 Lekander <- read.dta("psd_srh_il6.dta")
 Lekander_df <- data.frame("psd_srh_il6.dta")
+Lasselin <- read_sav("Lasselin.sav")
+MIDJA2_df <- read_tsv("MIDJA2.tsv")
 
 # Abhimanyu - Extract IL6 and omit NAs
 IL6Abhimanyu <- data.frame(Abhimanyu_df$IL.6)
@@ -47,6 +51,13 @@ IL6Sothern <- data.frame(Sothern_df$values)
 # Lekander - extract IL6 and omit NAs
 IL6Lekander <- data.frame(Lekander$il6m)
 IL6Lekander<- na.omit(IL6Lekander)
+
+# Lasselin - extract IL-6
+IL6Lasselin <- data.frame(Lasselin$T0_IL6pgmL.LPS)
+
+# MIDJA2 - extract IL-6
+IL6MIDJA2 <- data.frame(MIDJA2_df$K2BIL6)
+IL6MIDJA2 <- na.omit(IL6MIDJA2)
 
 # Stack data in a 2 column df 
 IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA)
@@ -78,6 +89,10 @@ IL6_only_stacked %>%
     shapiro_test <- shapiro.test(IL6_raw)
     shapiro_test_log <- shapiro.test(IL6_log)
     
+    # Skewness
+    skewness_norm <- skewness(IL6_raw)
+    skewness_log <- skewness(IL6_log)
+    
     #group_walk silences output to console, going around this by writing csv files instead
     df <- data.frame(
       dataset=.y$ind[1], 
@@ -91,7 +106,10 @@ IL6_only_stacked %>%
       bic_norm=round(model_summary_dnorm$bic, digits=1), 
       loglik_exp=round(model_summary_dexp$loglik, digits=1), 
       aic_exp=round(model_summary_dexp$aic, digits=1), 
-      bic_exp=round(model_summary_dexp$bic, digits=1))
+      bic_exp=round(model_summary_dexp$bic, digits=1),
+      skew_norm=round(skewness_norm, digits=3),
+      skew_log=round(skewness_log, digits=3)
+      )
     write.csv(df, sprintf("%s-fitdistr.csv", .y$ind[1]), row.names = F)
     
     # Create plots
@@ -109,7 +127,9 @@ IL6_only_stacked %>%
     plot(histIL6, main = "Raw data", xlab = "IL-6 (pg/µl)") 
     plot(histlogIL6, main = "Log-transformed", xlab = "IL-6 (pg/µl)") 
     plot(qqIL6, xlab = "Theoretical Quantiles", ylab = "Sample Quantiles", frame.plot = F) 
+    abline(0,1)
     plot(qqlogIL6,  xlab = "Theoretical Quantiles", ylab = "Sample Quantiles", frame.plot = F) 
+    abline(0,1)
     
     dev.off()
     setwd("../output")
@@ -122,4 +142,9 @@ outputs <- list.files(path='.') %>%
   lapply(read_csv) %>% 
   bind_rows 
 write.csv(outputs, "../all_outputs.csv", row.names = F)
+
+plot(n ~ skew_norm, data = outputs)
+abline(v=1)
+plot(n ~ skew_log, data = outputs)
+abline(v=1)
 
