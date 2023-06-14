@@ -60,8 +60,8 @@ IL6MIDJA2 <- data.frame(MIDJA2_df$K2BIL6)
 IL6MIDJA2 <- na.omit(IL6MIDJA2)
 
 # Stack data in a 2 column df 
-IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA)
-colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA")
+IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA, IL6Lasselin, IL6MIDJA2)
+colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA", "IL6Lasselin", "IL6MIDJA2")
 IL6_only_stacked <- data.frame(stack(IL6_only)) %>% filter(!is.na(values))
 
 # To simplify the syntax when writing files
@@ -132,6 +132,23 @@ IL6_only_stacked %>%
     abline(0,1)
     
     dev.off()
+    
+    # Write to image
+    setwd("../png")
+    
+    png(sprintf("%s.png", dataset_name), width = 5, height = 5, units="in", res=150) 
+    
+    par(mfrow=c(2,2), mar=c(3,3,3,3))
+    plot(histIL6, main = "Raw data", xlab = "IL-6 (pg/µl)") 
+    plot(histlogIL6, main = "Log-transformed", xlab = "IL-6 (pg/µl)") 
+    plot(qqIL6, xlab = "Theoretical Quantiles", ylab = "Sample Quantiles", frame.plot = F) 
+    abline(0,1)
+    plot(qqlogIL6,  xlab = "Theoretical Quantiles", ylab = "Sample Quantiles", frame.plot = F) 
+    abline(0,1)
+    
+    dev.off()
+    
+    
     setwd("../output")
     
   })
@@ -143,8 +160,14 @@ outputs <- list.files(path='.') %>%
   bind_rows 
 write.csv(outputs, "../all_outputs.csv", row.names = F)
 
-plot(n ~ skew_norm, data = outputs)
+setwd("..")
+png("sample-size-norm.png", width = 5, height = 5, units="in", res=150) 
+plot(n ~ skew_norm, data = outputs, main = "Raw data", xlab="Skewness")
 abline(v=1)
-plot(n ~ skew_log, data = outputs)
+dev.off()
+
+png("sample-size-log.png", width = 5, height = 5, units="in", res=150) 
+plot(n ~ skew_log, data = outputs, main = "Log-transformed", xlab="Skewness")
 abline(v=1)
+dev.off()
 
