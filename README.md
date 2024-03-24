@@ -1,8 +1,12 @@
 # cytokines_distributions
 
-To run script, the following is required: 
+## extract-IL6.R
+Reads raw data from each study, extracts the required data. Writes to file. No need to run this script unless you're adding a new data source.
+Writes the results to IL6-only-stacked.csv
 
-- Data folder named IL6_data. Check Meta Research drive for a zipped version of this.
-- Set working directory to IL6_data
+## IL6_distr.R
+- Requires the file IL6-only-stacked.csv, available from the Meta-Research drive. The file should be placed in the root of the project.
+- Set working directory to root of project.
+
 
 
