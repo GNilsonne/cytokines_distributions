@@ -30,6 +30,7 @@ Lekander <- read.dta("psd_srh_il6.dta")
 Lekander_df <- data.frame("psd_srh_il6.dta")
 Lasselin <- read_sav("Lasselin.sav")
 MIDJA2_df <- read_tsv("MIDJA2.tsv")
+MIDUS3 <- read_sav("MIDUS3.sav")
 
 # Abhimanyu - Extract IL6 and omit NAs
 IL6Abhimanyu <- data.frame(Abhimanyu_df$IL.6)
@@ -59,9 +60,13 @@ IL6Lasselin <- data.frame(Lasselin$T0_IL6pgmL.LPS)
 IL6MIDJA2 <- data.frame(MIDJA2_df$K2BIL6)
 IL6MIDJA2 <- na.omit(IL6MIDJA2)
 
+# MIDUS3 - extract IL-6
+IL6MIDUS3 <- data.frame(as.numeric(MIDUS3$RA4BIL6))
+IL6MIDUS3 <- na.omit(IL6MIDUS3)
+
 # Stack data in a 2 column df 
-IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA, IL6Lasselin, IL6MIDJA2)
-colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA", "IL6Lasselin", "IL6MIDJA2")
+IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA, IL6Lasselin, IL6MIDJA2, IL6MIDUS3)
+colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA", "IL6Lasselin", "IL6MIDJA2", "IL6MIDUS3")
 IL6_only_stacked <- data.frame(stack(IL6_only)) %>% filter(!is.na(values))
 
 # To simplify the syntax when writing files
