@@ -9,14 +9,18 @@ rm(list=ls())
 # 1. Read data
 
 # Require packages
-require(foreign)
-require(tidyverse)
-require(fitdistrplus)
-require(haven)
-require(moments)
+library(foreign)
+library(tidyverse)
+library(fitdistrplus)
+library(haven)
+library(moments)
+library(dplyr)
 
 # This file needs to be downloaded file from Meta Research drive
 IL6_only_stacked <- read.csv("IL6-only-stacked.csv")
+
+#Temporary filter
+IL6_only_stacked <- IL6_only_stacked %>% filter(ind == "IL6_MIDUS_REF")
 
 # To simplify the syntax when writing files
 setwd("output")
