@@ -14,6 +14,7 @@ library(fitdistrplus)
 library(haven)
 library(moments)
 library(readr)
+library(readxl)
 
 # Read data from files
 Abhimanyu_df <- read.csv2("Abhimanyu_derivation.csv")
@@ -31,10 +32,11 @@ Lekander_df <- data.frame("psd_srh_il6.dta")
 Lasselin <- read_sav("Lasselin.sav")
 MIDJA2_df <- read_tsv("MIDJA2.tsv")
 MIDUS3 <- read_sav("MIDUS3.sav")
-
 load("MIDUS-REFRESHER.rda")
 # There is also $RA4BMSDIL6 for another method of measurement. RA4BIL6 is ELISA.
 IL6_MIDUS_REF <- data.frame(da36901.0001$RA4BIL6)
+Yang <- read_xlsx("Yang.xlsx")
+IL6_Yang <- Yang$`IL6(pg/mL)`
 
 # Abhimanyu - Extract IL6 and omit NAs
 IL6Abhimanyu <- data.frame(Abhimanyu_df$IL.6)
@@ -72,9 +74,14 @@ IL6MIDUS3 <- na.omit(IL6MIDUS3)
 IL6_MIDUS_REF <- data.frame(as.numeric(IL6_MIDUS_REF$da36901.0001.RA4BIL6))
 IL6_MIDUS_REF <- na.omit(IL6_MIDUS_REF)
 
+#Yang
+IL6_Yang <- data.frame(as.numeric(IL6_Yang))
+IL6_Yang <- na.omit(IL6_Yang)
+
+
 # Stack data in a 2 column df 
-IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA, IL6Lasselin, IL6MIDJA2, IL6MIDUS3, IL6_MIDUS_REF)
-colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA", "IL6Lasselin", "IL6MIDJA2", "IL6MIDUS3", "IL6_MIDUS_REF")
+IL6_only <- bind_rows(IL6Abhimanyu, IL6Wand_stacked, IL6Imaeda, IL6Imaeda_v, IL6Sothern, IL6Lekander, IL6MIDUS, IL6MIDUS2, IL6MIDJA, IL6Lasselin, IL6MIDJA2, IL6MIDUS3, IL6_MIDUS_REF, IL6_Yang)
+colnames(IL6_only) <- c("Abhimanyu", "Wand", "Imaeda", "Imaeda_v", "Sothern", "Lekander", "IL6MIDUS", "IL6MIDUS2", "IL6MIDJA", "IL6Lasselin", "IL6MIDJA2", "IL6MIDUS3", "IL6_MIDUS_REF", "IL6_Yang")
 IL6_only_stacked <- data.frame(stack(IL6_only)) %>% filter(!is.na(values))
 
 # Write results to file
