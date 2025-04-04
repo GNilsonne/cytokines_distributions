@@ -20,7 +20,7 @@ library(dplyr)
 IL6_only_stacked <- read.csv("IL6-only-stacked.csv")
 
 # To simplify the syntax when writing files
-setwd("output")
+setwd("../output")
 
 # Group by dataset, for each group run the model and export csv file, once for dnorm and once for dexp
 IL6_only_stacked %>% 
