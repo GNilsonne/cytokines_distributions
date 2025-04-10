@@ -49,6 +49,12 @@ IL6_only_stacked %>%
     ad_test_list <- exp_test_ad(IL6_raw)
     ad_test_p <- ad_test_list$p.value
     
+    #k-s test for expdistr
+    sample_mean <- mean(IL6_raw)
+    MLrate <- 1/sample_mean
+    ks_test_list <- ks.test(IL6_raw,pexp,MLrate)
+    ks_test_p <- ks_test_list$p.value
+    
     # Skewness
     skewness_norm <- skewness(IL6_raw)
     skewness_log <- skewness(IL6_log)
@@ -62,6 +68,7 @@ IL6_only_stacked %>%
       w_log = round(shapiro_test_log$statistic, digits=3) , 
       p_log = signif(shapiro_test_log$p.value, digits=4), 
       p_ad = signif(ad_test_p, digits=4),
+      p_ks = signif(ks_test_p, digits=4),
       loglik_norm=round(model_summary_dnorm$loglik, digits=1), 
       aic_norm=round(model_summary_dnorm$aic, digits=1), 
       bic_norm=round(model_summary_dnorm$bic, digits=1), 
